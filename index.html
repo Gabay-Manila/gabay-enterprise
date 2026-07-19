@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gabay & Carentor - 法人向けリスキリング・マネジメントSaaS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+
+        body {
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            color: #1e293b;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 3rem 1.5rem;
+        }
+
+        .container { width: 100%; max-width: 1200px; }
+
+        header { margin-bottom: 2rem; text-align: center; }
+        header h1 { font-size: 2.5rem; font-weight: 800; color: #0f172a; letter-spacing: -0.03em; margin-bottom: 0.5rem; }
+        header p { font-size: 1.05rem; color: #475569; font-weight: 500; }
+        .saas-badge { display: inline-block; margin-top: 0.75rem; font-size: 0.75rem; font-weight: 700; color: #1e3a8a; background: #dbeafe; padding: 0.35rem 1rem; border-radius: 99px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+        .runtime-banner { display: none; background: #fef3c7; border: 1px solid #f5d580; color: #7a5305; border-radius: 14px; padding: 1rem 1.25rem; font-size: 0.85rem; line-height: 1.6; margin-bottom: 1.5rem; }
+        .runtime-banner.show { display: block; }
+        .runtime-banner strong { display: block; margin-bottom: 0.2rem; }
+
+        /* 認証情報パネル */
+        .credential-panel {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: #ffffff;
+            border-radius: 24px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 20px 40px rgba(15,23,42,0.15);
+        }
+
+        .credential-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem; }
+        .credential-title { font-size: 0.95rem; font-weight: 700; letter-spacing: 0.03em; color: #f8fafc; display: flex; align-items: center; gap: 0.5rem; }
+        .conn-status { font-size: 0.75rem; font-weight: 600; padding: 0.3rem 0.75rem; border-radius: 99px; background: rgba(255,255,255,0.08); color: #94a3b8; }
+        .conn-status.ok { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+        .conn-status.error { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+
+        .api-input-group { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+        .key-input-box {
+            flex: 1; min-width: 260px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px; padding: 1rem; font-size: 0.9rem; color: #ffffff; font-family: 'JetBrains Mono', monospace; transition: all 0.3s;
+        }
+        .key-input-box:focus { outline: none; border-color: #38bdf8; background: rgba(255, 255, 255, 0.08); }
+
+        .credential-btn { border: none; padding: 0 1.75rem; font-weight: 600; border-radius: 12px; cursor: pointer; transition: all 0.2s; font-size: 0.9rem; }
+        .save-key-btn { background: #38bdf8; color: #0f172a; }
+        .save-key-btn:hover { background: #7dd3fc; transform: translateY(-1px); }
+        .test-key-btn { background: rgba(255,255,255,0.08); color: #f8fafc; border: 1px solid rgba(255,255,255,0.2); }
+        .test-key-btn:hover { background: rgba(255,255,255,0.14); }
+        .test-key-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .credential-note { margin-top: 0.9rem; font-size: 0.76rem; line-height: 1.6; color: #94a3b8; }
+
+        /* スキルトラック選択 */
+        .track-panel {
+            background: rgba(255, 255, 255, 0.9); border: 1px solid #e2e8f0; border-radius: 24px; padding: 2rem; margin-bottom: 1.75rem;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+        }
+        .track-label { font-size: 0.9rem; font-weight: 700; color: #334155; margin-bottom: 0.9rem; display: block; letter-spacing: 0.03em; }
+        .track-buttons { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0.75rem; margin-bottom: 1.25rem; }
+        .track-btn {
+            background: #ffffff; color: #475569; border: 1px solid #e2e8f0; padding: 1rem 0.9rem;
+            border-radius: 14px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.25s; text-align: center;
+        }
+        .track-btn:hover { border-color: #0f172a; transform: translateY(-2px); }
+        .track-btn.active { background: #0f172a; color: #ffffff; border-color: #0f172a; box-shadow: 0 10px 20px rgba(15,23,42,0.15); }
+        .track-custom-input { width: 100%; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1rem; font-size: 0.95rem; color: #0f172a; }
+
+        /* コックピット（3つの主要モジュール） */
+        .boardroom { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 2rem; margin-bottom: 2rem; }
+
+        .dept-card {
+            background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.7);
+            border-radius: 24px; padding: 2.25rem; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; position: relative;
+        }
+        .dept-card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08); }
+
+        .copy-badge-btn {
+            position: absolute; top: 2.25rem; right: 2.25rem; background: rgba(15, 23, 42, 0.05); color: #0f172a;
+            border: none; padding: 0.4rem 0.8rem; font-size: 0.75rem; font-weight: 600; border-radius: 8px; cursor: pointer; transition: all 0.2s;
+        }
+        .copy-badge-btn:hover { background: #0f172a; color: #ffffff; }
+        .copy-badge-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .dept-badge { align-self: flex-start; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 0.4rem 1.2rem; border-radius: 99px; margin-bottom: 1.5rem; }
+        .badge-carentor { background: #fee2e2; color: #991b1b; }
+        .badge-gabay-cbt { background: #e0f2fe; color: #0369a1; }
+        .badge-gabay-hitl { background: #f3e8ff; color: #6b21a8; }
+
+        .dept-card h2 { font-size: 1.4rem; font-weight: 700; color: #0f172a; margin-bottom: 0.5rem; padding-right: 4.5rem; }
+        .dept-card .subtitle { font-size: 0.86rem; color: #64748b; margin-bottom: 1.5rem; line-height: 1.55; }
+
+        .output-box {
+            background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.5rem;
+            font-size: 0.94rem; line-height: 1.65; color: #334155; min-height: 300px; max-height: 440px; overflow-y: auto; white-space: pre-line;
+        }
+        .output-box.is-error { color: #b91c1c; background: #fef2f2; border-color: #fca5a5; }
+
+        /* 発進マスターパネル */
+        .master-panel {
+            background: #0f172a; color: #ffffff; border-radius: 28px; padding: 2.75rem; text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); margin-bottom: 1.75rem;
+        }
+        .master-panel h3 { font-size: 1.6rem; font-weight: 700; margin-bottom: 0.75rem; color: #f8fafc; }
+        .master-panel p { color: #94a3b8; font-size: 0.95rem; margin-bottom: 1.75rem; max-width: 620px; margin-left: auto; margin-right: auto; line-height: 1.7; }
+
+        .master-btn {
+            background: #ffffff; color: #0f172a; font-weight: 700; font-size: 1.1rem; border: none;
+            padding: 1.2rem 3.5rem; border-radius: 16px; cursor: pointer; box-shadow: 0 4px 15px rgba(255,255,255,0.1);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .master-btn:hover { background: #f8fafc; transform: translateY(-3px) scale(1.02); box-shadow: 0 20px 30px rgba(0,0,0,0.3); }
+        .master-btn:disabled { background: #334155; color: #64748b; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        .privacy-note { text-align: center; font-size: 0.78rem; color: #64748b; max-width: 640px; margin: 0 auto 2rem; line-height: 1.7; }
+
+        /* 履歴書庫 */
+        .history-panel { background: rgba(255, 255, 255, 0.9); border: 1px solid #e2e8f0; border-radius: 24px; padding: 2.5rem; }
+        .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem; }
+        .history-title { font-size: 1.2rem; font-weight: 700; color: #0f172a; }
+        .clear-history-btn { background: transparent; color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); padding: 0.5rem 1.25rem; font-size: 0.85rem; font-weight: 600; border-radius: 10px; cursor: pointer; transition: all 0.2s; }
+        .clear-history-btn:hover { background: #ef4444; color: #ffffff; }
+        .history-list { display: flex; flex-direction: column; gap: 1rem; max-height: 300px; overflow-y: auto; }
+        .history-item { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.25rem; cursor: pointer; transition: all 0.3s; display: flex; justify-content: space-between; align-items: center; }
+        .history-item:hover { border-color: #0f172a; transform: translateX(2px); }
+        .history-item-title { font-weight: 700; font-size: 0.94rem; color: #0f172a; }
+        .history-item-date { font-size: 0.75rem; color: #64748b; margin-top: 0.25rem; display: block; }
+        .history-item-track { font-size: 0.7rem; font-weight: 700; color: #0369a1; background: #e0f2fe; padding: 0.15rem 0.6rem; border-radius: 6px; display: inline-block; margin-bottom: 0.35rem; }
+        .delete-item-btn { background: transparent; border: none; color: #94a3b8; cursor: pointer; font-size: 1.1rem; padding: 0.5rem; }
+        .delete-item-btn:hover { color: #ef4444; }
+        .history-empty { text-align: center; color: #64748b; padding: 2.5rem; font-size: 0.94rem; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Gabay Enterprise</h1>
+        <p>BPO・送り出し機関向け リスキリング・マネジメントSaaS</p>
+        <span class="saas-badge">B2B SaaS デモンストレーション</span>
+    </header>
+
+    <div class="runtime-banner" id="runtime-banner">
+        <strong>⚠️ このブラウザ環境では保存機能が使えません</strong>
+        APIキーと履歴はこのタブを閉じると消えます。Vercel等にデプロイした実URLで開くと保存が有効になります。
+    </div>
+
+    <div class="credential-panel">
+        <div class="credential-header">
+            <span class="credential-title">🔑 Google AI Studio APIキー（このブラウザだけに保存）</span>
+            <span class="conn-status" id="conn-status">未確認</span>
+        </div>
+        <div class="api-input-group">
+            <input type="password" id="api-key-input" class="key-input-box" placeholder="AIza...（API不要の介護トラックは未入力でも稼働します）">
+            <button class="credential-btn save-key-btn" onclick="saveApiKey()">保存する</button>
+            <button class="credential-btn test-key-btn" id="btn-test-key" onclick="testApiKey()">接続テスト</button>
+        </div>
+        <div class="credential-note">
+            ※ 介護トラックは完全オフライン（API無し）で内蔵の教材ライブラリを使用します。その他のトラックでGemini動的生成を試す場合のみ、キーを入力してください。
+        </div>
+    </div>
+
+    <div class="track-panel">
+        <span class="track-label">【対象スキルトラックを選択】研修中の受講生が学んでいる分野を選んでください</span>
+        <div class="track-buttons" id="track-buttons"></div>
+        <div id="track-custom-container" style="display: none;">
+            <input type="text" id="track-custom-input" class="track-custom-input" placeholder="例：ホテル接客業務の基礎日本語、溶接技能検定の実技用語 など">
+        </div>
+    </div>
+
+    <div class="boardroom">
+        <div class="dept-card">
+            <span class="dept-badge badge-carentor">📊 Carentor コア</span>
+            <button class="copy-badge-btn" onclick="copyText('carentor-output')">📋 コピー</button>
+            <h2>管理者ダッシュボード分析</h2>
+            <p class="subtitle">受講生グループ全体の匿名集計データとして、進捗傾向・合格予測・つまずきやすい学習ポイントを経営層向けレポートに整理します（個人を特定できる情報は含みません）</p>
+            <div class="output-box" id="carentor-output">下の「発進ボタン」を押すと、集計デモが稼働します。</div>
+        </div>
+
+        <div class="dept-card">
+            <span class="dept-badge badge-gabay-cbt">📝 Gabay CBT</span>
+            <button class="copy-badge-btn" onclick="copyText('gabay-cbt-output')">📋 コピー</button>
+            <h2>選択トラックの模擬演習</h2>
+            <p class="subtitle">選んだスキルトラックに沿って、本番形式に近い4択問題と解説を生成します</p>
+            <div class="output-box" id="gabay-cbt-output">Carentorの分析を基に、今解くべき演習問題がここに出荷されます。</div>
+        </div>
+
+        <div class="dept-card">
+            <span class="dept-badge badge-gabay-hitl">🧠 Gabay HITL</span>
+            <button class="copy-badge-btn" onclick="copyText('gabay-hitl-output')">📋 コピー</button>
+            <h2>AI出力検品トレーニング</h2>
+            <p class="subtitle">AIや現場スタッフが作成した「もっともらしいが1箇所だけ明確な誤り・安全リスクがある業務報告書」を人間の目で検品（ファクトチェック）する訓練コンテンツ</p>
+            <div class="output-box" id="gabay-hitl-output">検品シミュレーションと模範解説がここに出荷されます。</div>
+        </div>
+    </div>
+
+    <div class="master-panel">
+        <h3>3ライン連動シミュレーション発進</h3>
+        <p>登録したAPIキーを使い、選択したスキルトラックに沿って「進捗分析 → 演習問題 → AI検品トレーニング」の3工程を連続生成します。BPO企業や送り出し機関の研修運用を、実際に動くデモでご確認いただけます。</p>
+        <button class="master-btn" id="btn-master" onclick="runAllProcess()">
+            Gabay / Carentor 連動プレスラインを起動
+        </button>
+    </div>
+
+    <p class="privacy-note">※ 本デモが生成するデータはすべてAIによる架空のサンプル、または内蔵された固定教材ライブラリです。実在する受講生・企業を特定する情報は生成しない設計になっています。</p>
+
+    <div class="history-panel">
+        <div class="history-header">
+            <div class="history-title">📚 生成ログ履歴（クリックで瞬時に復元）</div>
+            <button class="clear-history-btn" onclick="clearAllHistory()">全履歴を消去</button>
+        </div>
+        <div class="history-list" id="history-container"></div>
+    </div>
+</div>
+
+<script>
+    // ---- スキルトラック定義 ----
+    const SKILL_TRACKS = {
+        kaigo: { label: "介護（JFT-Basic）", context: "介護分野の特定技能候補者向けJFT-Basic（国際交流基金日本語基礎テスト）および介護現場の専門日本語" },
+        seizou: { label: "製造業", context: "製造業分野の特定技能候補者向け技能測定試験、および工場の安全衛生・専門用語の日本語" },
+        shukuhaku: { label: "宿泊・接客", context: "宿泊分野の特定技能候補者向け技能測定試験、および接客現場の日本語コミュニケーション" },
+        kenchiku: { label: "建設", context: "建設分野の特定技能候補者向け技能測定試験、および現場安全管理の専門日本語" },
+        nogyo: { label: "農業", context: "農業分野の特定技能候補者向け技能測定試験、および農作業現場の専門日本語" },
+        custom: { label: "自由入力", context: null }
+    };
+
+    let selectedTrack = "kaigo";
+
+    // =========================================================================
+    // 介護トラック用・Gabay HITL 検品トレーニング教材ライブラリ（10本）
+    // =========================================================================
+    const KAIGO_HITL_LIBRARY = [
+        {
+            title: "【検品特訓：移乗介助のヒヤリハット報告書】",
+            text: `【業務記録：車椅子への移乗介助記録】
+記録者：マリア（研修生スタッフ）
+
+10:30、吉田様のベッドから車椅子への移乗介助を行った。
+吉田様は右片麻痺があるため、車椅子を吉田様の左側（健側）に30度の角度で配置した。
+吉田様に声をかけ、浅く腰掛けていただくよう促した。
+その後、マリアが吉田様の前に立ち、膝をしっかりと支持しながら、一呼吸おいて安全に一連の動作で車椅子へと移乗していただいた。
+移乗後、吉田様にめまいや気分の不快がないか確認し、「大丈夫」との返答をいただいたため、フットサポートに足を乗せて居間へ移動した。`,
+            answer: `【模範解答：重大な手順の抜け】
+× 間違い・リスク箇所：
+「一呼吸おいて安全に一連動作で車椅子へと移乗していただいた。」の直前。
+
+💡 検品チェックポイント：
+『車椅子のブレーキをロック（固定）した』という記述が完全に抜け落ちています。
+どれだけ角度や麻痺側への配慮が適切でも、ブレーキがかかっていない車椅子に移乗させようとすると、お尻が乗った瞬間に車椅子が後ろに滑り、利用者が床に転倒する重大事故に直結します。
+AIや新人が一見流れるような文章で報告書を書いてきても、この安全の要（ブレーキロック）の記載漏れを見逃してはいけません。`
+        },
+        {
+            title: "【検品特訓：食事介助の誤嚥リスク日誌】",
+            text: `【食事介助記録：昼食】
+記録者：ジェイソン（研修生スタッフ）
+
+12:15、遠藤様の昼食介助をベッド上にて実施。
+遠藤様は本日やや体動が少なかったため、ベッドの背上げ角度を85度のほぼ直角に近い状態までしっかり起こし、誤嚥を防ぐ姿勢をとった。
+主食（おかゆ）とおかずを交互にスプーンですくい、遠藤様の口元へ運んだ。
+遠藤様が「おいしい」と笑顔を見せられたため、次の一口をテンポよく進め、15分という非常にスピーディーな時間で全量を全介助にて召し上がっていただくことができた。食後のバイタルに異常なし。`,
+            answer: `【模範解答：早食い・誤嚥の誘導リスク】
+× 間違い・リスク箇所：
+「次の一口をテンポよく進め、15分という非常にスピーディーな時間で全量を全介助にて〜」
+
+💡 検品チェックポイント：
+高齢者、特に介助が必要な方の食事を短時間で急がせるのは誤嚥・窒息の引き金を引く危険な行為です。
+利用者がしっかり「そしゃく（噛む）」し、「嚥下（飲み込み）」したことを喉の動きで目視確認してから次の一口を運ぶのが原則です。新人スタッフが「早くたくさん食べさせられて優秀」と誤った評価をしてしまう場合、即座に再教育が必要です。`
+        },
+        {
+            title: "【検品特訓：入浴介助のヒートショック報告】",
+            text: `【入浴介助記録】
+記録者：アイカ（研修生スタッフ）
+
+14:00、佐藤様の個別入浴介助を実施。
+浴室内の室温をあらかじめ24度前後に温めておき、佐藤様をご案内した。
+脱衣所で脱衣をサポートした後、佐藤様をシャワーチェアに座らせ、寒がらないよう、すぐに背中から温かい40度のシャワーをかけて全身を温めた。
+その後、丁寧に洗髪と洗身を行い、湯船（41度）に5分間浸かっていただいた。湯上がり後の水分補給も問題なく実施。`,
+            answer: `【模範解答：心臓への負担・手順ミス】
+× 間違い・リスク箇所：
+「すぐに背中から温かい40度のシャワーをかけて全身を温めた。」
+
+💡 検品チェックポイント：
+いきなり体の中心（背中や胸）にシャワーをかけるのは、血圧が急激に変動し心臓への負担やヒートショックを起こす危険な手順です。
+必ず「足元（末梢）」から順番に、手、お腹、そして最後に背中へと、お湯の温度に体を慣れさせながらかけるのが原則です。この文章を「親切な介助」と誤認してはいけません。`
+        },
+        {
+            title: "【検品特訓：申し送り表現のビジネス日本語チェック】",
+            text: `【日勤から夜勤への申し送り日誌】
+記録者：ケン（BPOスタッフ）
+
+16:00、高橋おばあちゃんの部屋に見守りに行ったとき、高橋おばあちゃんが『頭が痛いから横になるわ』と僕に言いました。
+なので、高橋おばあちゃんをベッドに寝かせてあげました。
+その後、熱を測ったら36.8度で普通だったので、少し様子を見ることにしました。夜勤の人は注意してください。`,
+            answer: `【模範解答：不適切なビジネス日本語（敬語・表現）】
+× 間違い・リスク箇所：
+「高橋おばあちゃん」「〜と言いました」「寝かせてあげました」「夜勤の人は注意してください」
+
+💡 検品チェックポイント：
+介護職の記録として、日本語の表現が業務水準に達していません。
+「高橋おばあちゃん」→「高橋様」、「言いました」→「〜との訴えあり（おっしゃいました）」、「寝かせてあげました」→「ベッドへの入床を介助（促した）」、「夜勤の人は注意」→「夜勤帯、要観察（申し送り）」と修正する必要があります。「〜してあげた」という上から目線の表現は、日本の施設で最も厳しく指導されるポイントの一つです。`
+        },
+        {
+            title: "【検品特訓：認知症対応・夕暮れ症候群の記録】",
+            text: `【夕方の介護記録：認知症ケア】
+記録者：リン（研修生スタッフ）
+
+16:45、渡辺様（認知症）がホールにて「家に帰る、子供が待っているから」と言ってソワソワし、出口に向かって歩き始められた。
+リンは「渡辺さん、お子さんはもう大人ですよ！ここが今の渡辺さんの家ですから、勝手に出て行ったら迷子になります！」と大声ではっきりと真実を伝え、現実を認識していただくよう説得した。
+渡辺様は泣き出して部屋に戻られたため、不穏は収まったと判断した。`,
+            answer: `【模範解答：認知症ケアにおけるNG対応（否定と説得）】
+× 間違い・リスク箇所：
+「お子さんはもう大人ですよ！ここが家ですから〜と真実を伝え、現実を認識していただくよう説得した。」
+
+💡 検品チェックポイント：
+認知症の周辺症状（夕暮れ症候群）に対する「真っ向からの否定・現実の押し付け」は、利用者を強い恐怖と混乱に陥れるため避けるべき対応です。
+子供を心配する感情に寄り添い、「お子さんのために、夕食の準備を一緒にしましょうか」と役割を持たせたり、話を聴いて安心していただく（共感と受容）のがGabayが教える対応です。泣かせて部屋に戻すことだけで「不穏が収まった」と判断するのは早計です。`
+        },
+        {
+            title: "【検品特訓：水分補給と誤嚥リスクの記録】",
+            text: `【日中ケア記録：水分補給】
+記録者：パウロ（研修生スタッフ）
+
+15:00、居間にておやつにゼリーを提供した際、あわせて水分補給を実施した。
+小林様は嚥下能力が低下しており、お茶でむせることが多いため、あらかじめ厨房で用意されたとろみ付きの緑茶（小さじ1杯分のとろみ剤で調整済み）を用意した。
+小林様を椅子に深く座らせ、顎が軽く上がった状態の姿勢をとっていただき、飲み込みやすいように配慮した。
+スプーンで少しずつ口元へ運び、全量150mlをむせることなくスムーズに飲んでいただくことができた。`,
+            answer: `【模範解答：誤嚥を誘発する危険な姿勢】
+× 間違い・リスク箇所：
+「小林様を椅子に深く座らせ、顎が軽く上がった状態の姿勢をとっていただき〜」
+
+💡 検品チェックポイント：
+水分や食事を摂る際に「顎が上がった（上を向いた）姿勢」をとると、気道が広がってしまい、水分が食道ではなくダイレクトに気管へ流れ込む「誤嚥」の引き金になります。
+嚥下能力が低下している利用者の場合、椅子やベッドの背もたれを調整し、「顎を軽く引いた姿勢（頸部前屈）」をとっていただくのが原則です。
+文章が「配慮した」と肯定的に書かれていても、解剖学的に逆の危険な誘導をしていることを見抜く必要があります。`
+        },
+        {
+            title: "【検品特訓：排泄介助における感染症対策報告】",
+            text: `【排泄介助記録：夜間ケア】
+記録者：ソフィア（研修生スタッフ）
+
+22:00、鈴木様（オムツ着用、下痢症状あり）の巡回時にオムツ交換を実施した。
+ノロウイルスなど感染症の懸念があるため、使い捨てのプラスチック手袋と使い捨てエプロンを着用してベッドサイドへ向かった。
+オムツを開けたところ、水様便の排泄を確認。周囲を汚さないよう注意しながら使用済みのオムツを丸め、新しいオムツへと手際よく交換した。
+汚染されたオムツと使用した手袋・エプロンは、すべて部屋のオープンゴミ箱に直接廃棄し、鈴木様に「すっきりしましたね」と声をかけて退出した。`,
+            answer: `【模範解答：感染拡大につながる不適切な廃棄】
+× 間違い・リスク箇所：
+「すべて部屋のオープンゴミ箱に直接廃棄し〜」
+
+💡 検品チェックポイント：
+下痢症状（特に感染症の疑いがある排泄物）が付着したオムツや使用済みの防護具を、蓋のない「オープンゴミ箱」に直接捨てるのは、ウイルスや菌が室内に飛散・蔓延する二次感染リスクとなります。
+汚染物は必ず密閉できる専用のビニール袋等に入れ、口をしっかり縛ってから、蓋付きの感染性廃棄物容器に捨てるのが原則です。新人が手際よく作業を終えても、後始末の衛生管理ミスを見逃してはいけません。`
+        },
+        {
+            title: "【検品特訓：床ずれ（褥瘡）予防の体位変換記録】",
+            text: `【巡回・体位変換記録】
+記録者：カルロ（研修生スタッフ）
+
+02:00、全介助が必要な寝たきりの加藤様の定期体位変換を実施。
+床ずれ（褥瘡）を予防するため、2時間おきのスケジュール通りに訪室した。
+加藤様は左側臥位（左側を下にした状態）で休まれていたため、カルロはベッドの反対側に立ち、時間短縮のため加藤様の体をシーツごとベッド面から持ち上げずに、そのままずるずると引きずるようにして仰臥位（あおむけ）へと姿勢を変更した。
+体位変更後、シーツのしわを軽く伸ばして退出した。`,
+            answer: `【模範解答：引きずり動作による「ずれ（シェアフォース）」の発生】
+× 間違い・リスク箇所：
+「加藤様の体をシーツごとベッド面から持ち上げずに、そのままずるずると引きずるようにして〜」
+
+💡 検品チェックポイント：
+体位変換の際に体を「持ち上げずに引きずる」動作は、皮膚表面と皮下の組織がズレる「シェアフォース（ずれ力）」を発生させます。これは圧力・摩擦と並ぶ床ずれ（褥瘡）の主要な発生要因の一つで、特に皮膚が薄く脆弱な高齢者では、引きずった摩擦だけで深い組織損傷につながることがあります。
+体位変換は、必ず体を一度ベッド面から浮かせる（または2人以上でスライディングシートを使う）ことで、摩擦・ずれを最小限にして行うのが原則です。「時間短縮」を優先した引きずり動作は、褥瘡予防を目的とした記録の中に紛れ込んだ本末転倒な誤りとして見抜く必要があります。`
+        },
+        {
+            title: "【検品特訓：服薬介助の安全確認日誌】",
+            text: `【夕食後：服薬介助記録】
+記録者：ニノ（研修生スタッフ）
+
+18:30、夕食が終わったため、田中様の服薬介助を実施。
+薬袋に記載されている氏名が「田中一郎様」であり、夕食後の処方であることを目視で確認した。
+田中様に「食後のお薬ですよ」と声をかけ、手渡した錠剤と100mlの白湯をすべて確実に飲み込んでいただいた。
+田中様が「ごちそうさま」と言われたため、服薬後の口腔内に薬が残っていないことをライトで目視確認し、正しく服薬が完了したと判断して記録した。`,
+            answer: `【模範解答：本人確認の手順不足（誤薬リスク）】
+× 間違い・リスク箇所：
+「薬袋に記載されている氏名が『田中一郎様』であり、夕食後の処方であることを目視で確認した。」の直後。
+
+💡 検品チェックポイント：
+服薬介助において、最も避けるべき事故の一つが別人の薬を飲ませてしまう「誤薬」です。
+この報告書では「薬袋の文字」は確認していますが、「目の前にいる利用者が本当に田中一郎様本人であるか」の確認（本人への呼びかけ、またはネームバンド等の照合）が抜けています。
+同姓の利用者がいる場合や、認知症で他人の部屋に座っているケースもあり、薬側だけでなく「対象者側」のダブルチェックを徹底する意識が必要です。`
+        },
+        {
+            title: "【検品特訓：入浴後のインシデント未然防止記録】",
+            text: `【入浴介助後のスキンケア記録】
+記録者：グレース（研修生スタッフ）
+
+14:30、木村様の入浴介助が終了し、脱衣所にて水分を拭き取った。
+木村様は車椅子を使用されているため、脱衣所の椅子へ移っていただき、速やかにバスタオルで全身の水分を優しく押さえるようにして拭き取った。
+その後、乾燥を防ぐための保湿ローションを全身に塗布した。特に、車椅子に座る時間が長く圧迫されやすいお尻の「尾骨部分」に赤み（発赤）を発見したため、これ以上ひどくならないよう、グレースが手のひらを使って円を描くように強めにマッサージして血行を促進させた。パジャマの着脱を行い介助を終了した。`,
+            answer: `【模範解答：褥瘡（床ずれ）の初期症状に対するNGケア】
+× 間違い・リスク箇所：
+「赤み（発赤）を発見したため、〜強めにマッサージして血行を促進させた。」
+
+💡 検品チェックポイント：
+皮膚の赤み（発赤）は、床ずれ（褥瘡）の初期サインです。この状態の皮膚は脆弱になっており、そこを「強くマッサージする」と、摩擦と圧迫によって皮下組織の破壊を加速させ、褥瘡を悪化・潰瘍化させるNGの行為となります。
+赤みを見つけた場合は、マッサージはせず、圧迫を除去（体圧分散）し、看護師や施設管理者に即座に報告して指示を仰ぐのが正しい手順です。「良かれと思ってやってしまう危険なケア」を見落とさない訓練が必要です。`
+        }
+    ];
+
+    // =========================================================================
+    // 介護トラック用・Carentorダッシュボード（ベース値＋軽い変動）
+    // =========================================================================
+    const KAIGO_CARENTOR_BASE = {
+        totalPass: 82.4, examPass: 78.9,
+        weakPoints: [
+            "『移乗介助の専門日本語』（「健側」「麻痺側」「ロックを確認する」の単語の聞き分けミス）",
+            "『食事介助・誤嚥・口腔ケア』（「体位」「嚥下」「むせ込み」の状況判断問題での誤答）",
+            "『JFT-Basic：敬語表現』（施設長や先輩への報告時の適切な謙譲・尊敬表現の混同）"
+        ],
+        hitlAccuracy: 76.5
+    };
+
+    function buildKaigoCarentorReport() {
+        // ベース値に軽い乱数変動を加え、実行のたびに数字がわずかに動くようにする
+        const jitter = (base, range) => Math.round((base + (Math.random() * range * 2 - range)) * 10) / 10;
+        const totalPass = jitter(KAIGO_CARENTOR_BASE.totalPass, 2.5);
+        const examPass = jitter(KAIGO_CARENTOR_BASE.examPass, 2.5);
+        const hitlAccuracy = jitter(KAIGO_CARENTOR_BASE.hitlAccuracy, 3);
+        const trend = totalPass >= KAIGO_CARENTOR_BASE.totalPass ? "前週比プラス傾向" : "前週比やや軟調";
+
+        return `【Carentor：介護（JFT-Basic） 進捗統計レポート】
+集計対象：介護特定技能クラス（匿名集計・研修生グループ全体）
+
+1.【模擬試験：合格予測確率】
+■ JFT-Basic 総合合格予測率：${totalPass}%（${trend}）
+■ 介護特定技能測定試験（学科）突破率：${examPass}%
+➔ 分析：日本語の聴解力は全体的に向上傾向。CBT形式の操作に不慣れな受講生が一部おり、時間制限つきの演習強化が有効。
+
+2.【つまずきやすい学習ポイントTOP3】
+⚠️ 第1位：${KAIGO_CARENTOR_BASE.weakPoints[0]}
+⚠️ 第2位：${KAIGO_CARENTOR_BASE.weakPoints[1]}
+⚠️ 第3位：${KAIGO_CARENTOR_BASE.weakPoints[2]}
+
+3.【AI並走度の評価（Human-in-the-Loop戦闘力）】
+■ グループ平均検品精度：${hitlAccuracy}%
+➔ 傾向：もっともらしい文章で書かれた業務日誌の中に紛れた手順の抜け（ブレーキロック忘れ等）を見逃す傾向がまだ見られる。HITL訓練の反復強化を推奨。`;
+    }
+
+    // =========================================================================
+    // 介護トラック用・Gabay CBT 模擬問題ライブラリ（ランダム抽出）
+    // =========================================================================
+    const KAIGO_CBT_LIBRARY = [
+        `【CBT模擬出題：特定技能 介護特定技能試験 専門日本語】
+
+【問題文】
+利用者のベッドから車椅子への「移乗介助」を行うとき、最も適切な手順はどれですか。
+
+【選択肢】
+A. 利用者の麻痺（まひ）がある側に車椅子をつけ、ブレーキをかけずに素早く移乗させる。
+B. 利用者の健康な側に車椅子を15〜30度の角度でつけ、必ずブレーキをロックしてから移乗を介助する。
+C. 利用者をベッドの端に深く座らせ、足が床に届かない状態で車椅子へ引っ張る。
+D. 車椅子への移乗が終わった後に、フットサポート（足台）から足を外してベッドから立ち上がらせる。
+
+【正解】
+B
+
+【採点フィードバック・解説】
+・Aは間違い：車椅子は必ず「健康な側（健側）」に配置します。またブレーキをかけないのは転倒事故の原因になります。
+・Bが正解：利用者が自身の力も使いやすいよう健側に角度をつけて配置し、安全のため必ずブレーキをロックします。
+・Cは間違い：ベッドの端には「浅く」腰掛けていただき、両足がしっかり床について踏ん張れることを確認します。
+・Dは間違い：手順が逆です。フットサポートに足を乗せるのは、車椅子に安全に深く座った「後」です。`,
+        `【CBT模擬出題：特定技能 介護特定技能試験 専門日本語】
+
+【問題文】
+利用者の食事介助中、誤嚥（ごえん）を防ぐために最も重要な確認は何ですか。
+
+【選択肢】
+A. 利用者が「おいしい」と言ったら、次の一口をすぐに運ぶ。
+B. 一口ごとに、しっかり噛んで飲み込んだこと（嚥下）を喉の動きで確認してから次を運ぶ。
+C. 食事時間を短縮するため、複数の食材を一度にスプーンに乗せて運ぶ。
+D. ベッドの背上げ角度は、食事の間はできるだけ低く保つ。
+
+【正解】
+B
+
+【採点フィードバック・解説】
+・Aは間違い：発話は嚥下確認の代わりになりません。飲み込みを目視で確認することが必須です。
+・Bが正解：一口ごとの嚥下確認が誤嚥予防の基本です。
+・Cは間違い：一度に多くの食材を運ぶと誤嚥のリスクが高まります。
+・Dは間違い：誤嚥予防のためには適切な角度（一般的に30〜90度、状態に応じて調整）まで背上げすることが推奨されます。`,
+        `【CBT模擬出題：特定技能 介護特定技能試験 専門日本語】
+
+【問題文】
+入浴介助でシャワーをかける際、心臓への負担を減らすために正しい順番はどれですか。
+
+【選択肢】
+A. 頭からかけ始め、最後に足元にかける。
+B. 背中や胸など、体の中心から先にかける。
+C. 足元などの末梢（まっしょう）から始め、徐々に体の中心に向かってかける。
+D. 順番は関係なく、一気に全身にかければよい。
+
+【正解】
+C
+
+【採点フィードバック・解説】
+・Aは間違い：頭から急に温水をかけると血圧の急変動を招く可能性があります。
+・Bは間違い：体の中心にいきなりシャワーをかけると、心臓への急激な負担（ヒートショック）につながります。
+・Cが正解：末梢から中心に向かって徐々に体を温水に慣らすことで、血圧の急変動を防ぎます。
+・Dは間違い：順番を無視すると事故のリスクが高まります。`
+    ];
+
+    // ---- 保存機能を包む頑丈な配管 ----
+    let storageAvailable = true;
+    const memoryStore = {};
+
+    function safeGet(key) {
+        try { return localStorage.getItem(key); }
+        catch (e) { storageAvailable = false; return Object.prototype.hasOwnProperty.call(memoryStore, key) ? memoryStore[key] : null; }
+    }
+    function safeSet(key, value) {
+        try { localStorage.setItem(key, value); }
+        catch (e) { storageAvailable = false; memoryStore[key] = value; }
+    }
+    function safeRemove(key) {
+        try { localStorage.removeItem(key); }
+        catch (e) { storageAvailable = false; delete memoryStore[key]; }
+    }
+
+    let runHistory = [];
+    try { runHistory = JSON.parse(safeGet('gabayCarentorHistory')) || []; } catch (e) { runHistory = []; }
+
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str == null ? "" : String(str);
+        return div.innerHTML;
+    }
+
+    function getTrackContext() {
+        if (selectedTrack === 'custom') {
+            const customVal = document.getElementById('track-custom-input').value.trim();
+            return customVal || "指定された職務分野の技能研修";
+        }
+        return SKILL_TRACKS[selectedTrack].context;
+    }
+
+    function getTrackLabel() {
+        if (selectedTrack === 'custom') {
+            const customVal = document.getElementById('track-custom-input').value.trim();
+            return customVal ? `自由入力：${customVal}` : "自由入力";
+        }
+        return SKILL_TRACKS[selectedTrack].label;
+    }
+
+    function buildTrackButtons() {
+        const container = document.getElementById('track-buttons');
+        Object.keys(SKILL_TRACKS).forEach(key => {
+            const btn = document.createElement('button');
+            btn.className = "track-btn" + (key === selectedTrack ? " active" : "");
+            btn.setAttribute('data-track', key);
+            btn.innerText = SKILL_TRACKS[key].label;
+            btn.onclick = () => {
+                selectedTrack = key;
+                document.querySelectorAll('.track-btn').forEach(b => b.classList.toggle('active', b.getAttribute('data-track') === key));
+                document.getElementById('track-custom-container').style.display = (key === 'custom') ? 'block' : 'none';
+            };
+            container.appendChild(btn);
+        });
+    }
+
+    window.onload = function() {
+        const savedKey = safeGet('userGeminiApiKey');
+        if (savedKey) document.getElementById('api-key-input').value = savedKey;
+        if (!storageAvailable) document.getElementById('runtime-banner').classList.add('show');
+        buildTrackButtons();
+        renderHistory();
+    };
+
+    function saveApiKey() {
+        const key = document.getElementById('api-key-input').value.trim();
+        if (!key) { alert("APIキーを入力してください！"); return; }
+        safeSet('userGeminiApiKey', key);
+        alert(storageAvailable ? "🔒 鍵を保存しました。2回目からは入力不要です。" : "この環境では保存機能が使えません。");
+    }
+
+    function copyText(elementId) {
+        const text = document.getElementById(elementId).innerText;
+        navigator.clipboard.writeText(text).then(() => {
+            const btn = document.querySelector(`[onclick="copyText('${elementId}')"]`);
+            const originalText = btn.innerText;
+            btn.innerText = "✓ コピー完了！"; btn.style.background = "#0f172a"; btn.style.color = "#ffffff";
+            setTimeout(() => { btn.innerText = originalText; btn.style.background = ""; btn.style.color = ""; }, 1500);
+        }).catch(() => alert("コピーに失敗しました。手動で選択してコピーしてください。"));
+    }
+
+    // Gemini呼び出し（動的生成トラック用）
+    async function askGemini(promptText) {
+        const apiKey = document.getElementById('api-key-input').value.trim();
+        if (!apiKey) throw new Error("APIキーが入力されていません！一番上のパネルにキーを入力してください。");
+
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
+        let response;
+        try {
+            response = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] }) });
+        } catch (networkErr) {
+            throw new Error("Googleサーバーへの接続に失敗しました。ネットワーク接続、または拡張機能をご確認ください。");
+        }
+
+        let data = null;
+        try { data = await response.json(); } catch (e) { /* ignore */ }
+
+        if (!response.ok) {
+            const googleMessage = data && data.error && data.error.message ? data.error.message : `HTTPステータス ${response.status}`;
+            throw new Error(`API接続エラー: ${googleMessage}`);
+        }
+
+        const candidate = data && data.candidates && data.candidates[0];
+        if (!candidate) throw new Error("Geminiから有効な返答がありませんでした（安全フィルターでブロックされた可能性があります）。");
+        if (candidate.finishReason === "SAFETY" || candidate.finishReason === "RECITATION") {
+            throw new Error(`Geminiが内容をブロックしました（理由: ${candidate.finishReason}）。`);
+        }
+        const part = candidate.content && candidate.content.parts && candidate.content.parts[0];
+        if (!part || !part.text) throw new Error("Geminiの返答からテキストを取得できませんでした。");
+        return part.text;
+    }
+
+    async function testApiKey() {
+        const statusEl = document.getElementById('conn-status');
+        const testBtn = document.getElementById('btn-test-key');
+        statusEl.textContent = "確認中..."; statusEl.className = "conn-status"; testBtn.disabled = true;
+        try {
+            await askGemini("これは接続テストです。「OK」とだけ日本語で答えてください。");
+            statusEl.textContent = "✓ 接続OK"; statusEl.className = "conn-status ok";
+        } catch (err) {
+            statusEl.textContent = "✗ 接続失敗"; statusEl.className = "conn-status error";
+            alert(err.message);
+        } finally { testBtn.disabled = false; }
+    }
+
+    // 動的生成用のプロンプトビルダー（介護以外のトラックで使用）
+    function buildCarentorPrompt(trackContext, trackLabel) {
+        return `あなたは法人向けリスキリング管理システム『Carentor』の分析AIです。
+「${trackContext}」の研修を受けている受講生グループ（架空の匿名集計データ）の進捗を分析してください。
+出力には必ず以下の3点を、プロフェッショナルなビジネス日本語で含めてください。
+1.【模擬試験：合格予測確率】クラス全体の集計値としてのパーセンテージと分析
+2.【つまずきやすい学習ポイントTOP3】どの単元・技能でつまずきやすいかを匿名で分析（個人名や個人を特定できる情報は絶対に含めないこと）
+3.【AI並走度の評価】AIが生成した内容の誤りを見抜く検品能力の評価
+1行目は必ず「【Carentor：${trackLabel} 進捗統計レポート】」という見出しにしてください。`;
+    }
+
+    function buildCbtPrompt(trackContext) {
+        return `あなたは研修用CBT問題の作成AIです。「${trackContext}」に関する4択問題を1問作成し、日本語で出力してください。構成：問題文、選択肢（A〜D）、正解、解説。`;
+    }
+
+    function buildHitlPrompt(trackContext) {
+        return `あなたはAI出力の検品トレーニング教材を作るAIです。「${trackContext}」に関する業務報告書を1つ作成してください。全体としてはもっともらしい内容にしつつ、意図的に1箇所だけ明確な誤り・リスクを紛れ込ませてください。構成：【検品対象の報告書】、【模範解答】どこが誤りか、なぜ問題なのかの解説。`;
+    }
+
+    async function runAllProcess() {
+        const masterBtn = document.getElementById('btn-master');
+        masterBtn.innerText = "3ライン連動生成中...";
+        masterBtn.disabled = true;
+
+        const carentorBox = document.getElementById('carentor-output');
+        const cbtBox = document.getElementById('gabay-cbt-output');
+        const hitlBox = document.getElementById('gabay-hitl-output');
+        [carentorBox, cbtBox, hitlBox].forEach(b => b.classList.remove('is-error'));
+
+        carentorBox.innerText = "データを集計中...";
+        cbtBox.innerText = "順番待ち...";
+        hitlBox.innerText = "順番待ち...";
+
+        const trackContext = getTrackContext();
+        const trackLabel = getTrackLabel();
+
+        try {
+            let carentorResult = "";
+            let cbtResult = "";
+            let hitlResult = "";
+
+            // 介護トラックは完全APIフリー（内蔵ライブラリから抽出）
+            if (selectedTrack === "kaigo") {
+                carentorResult = buildKaigoCarentorReport();
+                cbtResult = KAIGO_CBT_LIBRARY[Math.floor(Math.random() * KAIGO_CBT_LIBRARY.length)];
+                const hitlItem = KAIGO_HITL_LIBRARY[Math.floor(Math.random() * KAIGO_HITL_LIBRARY.length)];
+                hitlResult = `${hitlItem.title}\n\n${hitlItem.text}\n\n${hitlItem.answer}`;
+
+                await new Promise(r => setTimeout(r, 400));
+                carentorBox.innerText = carentorResult;
+                cbtBox.innerText = cbtResult;
+                hitlBox.innerText = hitlResult;
+            }
+            // それ以外のトラックはGeminiから動的生成
+            else {
+                carentorResult = await askGemini(buildCarentorPrompt(trackContext, trackLabel));
+                carentorBox.innerText = carentorResult;
+                await new Promise(r => setTimeout(r, 800));
+
+                cbtResult = await askGemini(buildCbtPrompt(trackContext));
+                cbtBox.innerText = cbtResult;
+                await new Promise(r => setTimeout(r, 800));
+
+                hitlResult = await askGemini(buildHitlPrompt(trackContext));
+                hitlBox.innerText = hitlResult;
+            }
+
+            saveToHistory(trackLabel, carentorResult, cbtResult, hitlResult);
+        } catch (error) {
+            [carentorBox, cbtBox, hitlBox].forEach(b => b.classList.add('is-error'));
+            carentorBox.innerText = "【生成停止】\n" + error.message;
+            cbtBox.innerText = "エラーのため停止";
+            hitlBox.innerText = "エラーのため停止";
+        } finally {
+            masterBtn.innerText = "Gabay / Carentor 連動プレスラインを起動";
+            masterBtn.disabled = false;
+        }
+    }
+
+    function saveToHistory(trackLabel, carentor, cbt, hitl) {
+        const timestamp = new Date().toLocaleString('ja-JP');
+        const newItem = { id: Date.now(), trackLabel, date: timestamp, carentor, cbt, hitl };
+        runHistory.unshift(newItem);
+        safeSet('gabayCarentorHistory', JSON.stringify(runHistory));
+        renderHistory();
+    }
+
+    function renderHistory() {
+        const container = document.getElementById('history-container');
+        container.innerHTML = "";
+        if (runHistory.length === 0) {
+            container.innerHTML = `<div class="history-empty">まだ生成履歴はありません。スキルトラックを選んで「連動プレスラインを起動」を押すと、ここに記録されます。</div>`;
+            return;
+        }
+        runHistory.forEach(item => {
+            const div = document.createElement('div');
+            div.className = "history-item";
+            div.setAttribute('onclick', `restoreHistory(${item.id})`);
+            div.innerHTML = `
+                <div>
+                    <span class="history-item-track">${escapeHtml(item.trackLabel)}</span>
+                    <div class="history-item-title">${escapeHtml(item.date)} の生成ログ</div>
+                    <span class="history-item-date">クリックで3つの出力を復元</span>
+                </div>
+                <button class="delete-item-btn" onclick="deleteHistoryItem(event, ${item.id})">🗑️</button>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    window.restoreHistory = function(id) {
+        const item = runHistory.find(x => x.id === id);
+        if (!item) return;
+        document.getElementById('carentor-output').innerText = item.carentor;
+        document.getElementById('gabay-cbt-output').innerText = item.cbt;
+        document.getElementById('gabay-hitl-output').innerText = item.hitl;
+        [document.getElementById('carentor-output'), document.getElementById('gabay-cbt-output'), document.getElementById('gabay-hitl-output')].forEach(b => b.classList.remove('is-error'));
+    };
+
+    window.deleteHistoryItem = function(event, id) {
+        event.stopPropagation();
+        if (!confirm("この履歴を削除してもよろしいですか？")) return;
+        runHistory = runHistory.filter(x => x.id !== id);
+        safeSet('gabayCarentorHistory', JSON.stringify(runHistory));
+        renderHistory();
+    };
+
+    window.clearAllHistory = function() {
+        if (!confirm("本当にすべての履歴を消去しますか？")) return;
+        runHistory = [];
+        safeRemove('gabayCarentorHistory');
+        renderHistory();
+    };
+</script>
+
+</body>
+</html>
